@@ -27,7 +27,7 @@ source ~/path/to/directus-login
 # list all users
 dirr $DIRECTUS_URL/users
 
-# filter users by last name, sort login date in descending order
+# filter users by last name and sort by last login date in descending order
 dirr $DIRECTUS_URL/users filter[last_name][_contains]=="A%" sort==-last_access
 
 # create new item in a collection
