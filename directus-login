@@ -1,0 +1,27 @@
+#!/usr/bin/env fish
+
+if [ -n "$DIRECTUS_AUTH_RESPONSE" ]
+  # refresh existing token
+  echo $DIRECTUS_AUTH_RESPONSE | jq -r '{ refresh_token, mode: "json" }' | curlie --fail-with-body -S POST $DIRECTUS_URL/auth/refresh | jq -cr .data | read -x DIRECTUS_AUTH_RESPONSE; and begin
+    set -x DIRECTUS_AUTH_TOKEN ( echo $DIRECTUS_AUTH_RESPONSE | jq -r .access_token ); set -x DIRECTUS_TOKEN $DIRECTUS_AUTH_TOKEN
+    alias dirr "curlie --fail-with-body -S -H 'Authorization: Bearer '$DIRECTUS_AUTH_TOKEN"
+    echo 'Successfully refreshed access token'
+    return 0
+  end
+end
+
+
+# login, reset env vars
+jq -nc --arg user $DIRECTUS_USER --arg pass $DIRECTUS_PASS '{email: $user, password: $pass}' | curlie --fail-with-body -S POST $DIRECTUS_URL/auth/login | jq -cr .data | read -x DIRECTUS_AUTH_RESPONSE
+set -x DIRECTUS_AUTH_TOKEN ( echo $DIRECTUS_AUTH_RESPONSE | jq -r .access_token ); set -x DIRECTUS_TOKEN $DIRECTUS_AUTH_TOKEN
+alias dirr "curlie --fail-with-body -S -H 'Authorization: Bearer '$DIRECTUS_AUTH_TOKEN"
+
+
+echo 'Logged in, set up a `dirr` alias and filled the following environment variables:'
+echo
+echo '- $DIRECTUS_USER'
+echo '- $DIRECTUS_PASS'
+echo '- $DIRECTUS_AUTH_RESPONSE'
+echo '- $DIRECTUS_AUTH_TOKEN'
+
+
